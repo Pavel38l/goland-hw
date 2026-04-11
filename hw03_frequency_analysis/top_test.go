@@ -7,7 +7,7 @@ import (
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -78,5 +78,79 @@ func TestTop10(t *testing.T) {
 			}
 			require.Equal(t, expected, Top10(text))
 		}
+	})
+
+	t.Run("simple english text", func(t *testing.T) {
+		text := "cat and dog, one dog,two cats and one man"
+		if taskWithAsteriskIsCompleted {
+			expected := []string{
+				"and",     // 2
+				"one",     // 2
+				"cat",     // 1
+				"cats",    // 1
+				"dog",     // 1 (из "dog," после очистки краёв)
+				"dog,two", // 1 (запятая внутри слова остаётся)
+				"man",     // 1
+			}
+			require.Equal(t, expected, Top10(text))
+		} else {
+			expected := []string{
+				"and",     // 2
+				"one",     // 2
+				"cat",     // 1
+				"cats",    // 1
+				"dog,",    // 1
+				"dog,two", // 1
+				"man",     // 1
+			}
+			require.Equal(t, expected, Top10(text))
+		}
+	})
+
+	t.Run("case insensitive and punctuation", func(t *testing.T) {
+		if !taskWithAsteriskIsCompleted {
+			t.Skip("test only for asterisk version")
+		}
+		text := "Нога нога нога! нога, 'нога'"
+		expected := []string{"нога"} // 5 раз
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("hyphenated words", func(t *testing.T) {
+		if !taskWithAsteriskIsCompleted {
+			t.Skip("test only for asterisk version")
+		}
+		text := "какой-то какойто какой-то"
+		expected := []string{
+			"какой-то", // 2
+			"какойто",  // 1
+		}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("comma inside words", func(t *testing.T) {
+		if !taskWithAsteriskIsCompleted {
+			t.Skip("test only for asterisk version")
+		}
+		text := "dog,cat dog...cat dogcat"
+		expected := []string{
+			"dog,cat",   // 1
+			"dog...cat", // 1
+			"dogcat",    // 1
+		}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("dashes as words", func(t *testing.T) {
+		if !taskWithAsteriskIsCompleted {
+			t.Skip("test only for asterisk version")
+		}
+		text := "------- - --- слово - -------"
+		expected := []string{
+			"-------", // 2
+			"---",     // 1
+			"слово",   // 1
+		}
+		require.Equal(t, expected, Top10(text))
 	})
 }
